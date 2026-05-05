@@ -1,0 +1,1070 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>期权回购税务规划工具</title>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700&family=JetBrains+Mono:wght@400;500;600&family=Noto+Sans+SC:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #faf8f3;
+  --bg-card: #ffffff;
+  --ink: #1a1814;
+  --ink-soft: #5a544c;
+  --ink-mute: #8a8378;
+  --line: #e8e2d6;
+  --line-soft: #f0ebdf;
+  --accent: #b8390e;
+  --accent-soft: #f5e6dc;
+  --good: #2d5a3d;
+  --warn: #a06a1c;
+  --bad: #8b2616;
+  --t3: #f5e6dc;
+  --t10: #ede4d4;
+  --t20: #e8d9b8;
+  --t25: #e0c89d;
+  --t30: #d4a87a;
+  --t35: #b88860;
+  --t45: #7a3a1f;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  font-family: 'Noto Sans SC', sans-serif;
+  background: var(--bg);
+  color: var(--ink);
+  line-height: 1.55;
+  padding: 2rem 1.25rem 4rem;
+  background-image:
+    radial-gradient(circle at 15% 5%, rgba(184, 57, 14, 0.04) 0%, transparent 50%),
+    radial-gradient(circle at 85% 95%, rgba(45, 90, 61, 0.03) 0%, transparent 50%);
+  min-height: 100vh;
+}
+.container { max-width: 1100px; margin: 0 auto; }
+
+header {
+  border-bottom: 1px solid var(--line);
+  padding-bottom: 1.5rem;
+  margin-bottom: 2rem;
+}
+.eyebrow {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.7rem;
+  letter-spacing: 0.18em;
+  color: var(--accent);
+  text-transform: uppercase;
+  margin-bottom: 0.5rem;
+}
+h1 {
+  font-family: 'Fraunces', serif;
+  font-weight: 600;
+  font-size: clamp(1.75rem, 4vw, 2.5rem);
+  letter-spacing: -0.02em;
+  line-height: 1.1;
+  margin-bottom: 0.5rem;
+}
+.subtitle {
+  color: var(--ink-soft);
+  font-size: 0.95rem;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: 360px 1fr;
+  gap: 2rem;
+  align-items: start;
+}
+@media (max-width: 880px) { .grid { grid-template-columns: 1fr; } }
+
+.panel {
+  background: var(--bg-card);
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  padding: 1.5rem;
+}
+.panel-title {
+  font-family: 'Fraunces', serif;
+  font-size: 1.1rem;
+  font-weight: 600;
+  margin-bottom: 1rem;
+  display: flex;
+  align-items: baseline;
+  gap: 0.5rem;
+}
+.panel-title::before {
+  content: '';
+  display: inline-block;
+  width: 3px;
+  height: 14px;
+  background: var(--accent);
+}
+.panel-title-meta {
+  font-size: 0.75rem;
+  color: var(--ink-mute);
+  font-weight: 400;
+  margin-left: 0.75rem;
+  font-family: 'JetBrains Mono', monospace;
+  letter-spacing: 0;
+  text-transform: none;
+}
+
+.input-group { margin-bottom: 1rem; }
+.input-group label {
+  display: block;
+  font-size: 0.8rem;
+  color: var(--ink-soft);
+  margin-bottom: 0.35rem;
+  font-weight: 500;
+}
+.input-group input {
+  width: 100%;
+  padding: 0.55rem 0.75rem;
+  border: 1px solid var(--line);
+  background: var(--bg);
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.95rem;
+  color: var(--ink);
+  border-radius: 2px;
+  transition: border-color 0.15s;
+}
+.input-group input:focus {
+  outline: none;
+  border-color: var(--accent);
+}
+.input-group .hint {
+  font-size: 0.7rem;
+  color: var(--ink-mute);
+  margin-top: 0.2rem;
+  font-family: 'JetBrains Mono', monospace;
+}
+.input-group-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.5rem;
+}
+.radio-row {
+  display: flex;
+  gap: 0.85rem;
+  font-size: 0.85rem;
+  color: var(--ink);
+}
+.radio-item {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  cursor: pointer;
+  font-weight: 400;
+}
+.radio-item input { accent-color: var(--accent); }
+
+.divider {
+  height: 1px;
+  background: var(--line-soft);
+  margin: 1.25rem 0;
+}
+
+.results { display: flex; flex-direction: column; gap: 1.5rem; }
+
+.summary {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 1px;
+  background: var(--line);
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  overflow: hidden;
+}
+@media (max-width: 900px) { .summary { grid-template-columns: repeat(3, 1fr); } }
+@media (max-width: 600px) { .summary { grid-template-columns: repeat(2, 1fr); } }
+.summary-cell {
+  background: var(--bg-card);
+  padding: 1rem 0.85rem;
+}
+.summary-label {
+  font-size: 0.7rem;
+  color: var(--ink-mute);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: 0.3rem;
+  font-family: 'JetBrains Mono', monospace;
+}
+.summary-value {
+  font-family: 'Fraunces', serif;
+  font-size: 1.4rem;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  color: var(--ink);
+}
+.summary-sub {
+  font-size: 0.7rem;
+  color: var(--ink-mute);
+  font-family: 'JetBrains Mono', monospace;
+  margin-top: 0.15rem;
+}
+
+.tier-bar-wrap {
+  background: var(--bg-card);
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  padding: 1.25rem;
+}
+.tier-bar {
+  position: relative;
+  height: 38px;
+  display: flex;
+  border-radius: 2px;
+  overflow: hidden;
+  border: 1px solid var(--line);
+}
+.tier-seg {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.7rem;
+  color: var(--ink);
+  font-weight: 500;
+  white-space: nowrap;
+  overflow: hidden;
+}
+.tier-seg.salary { background: var(--ink); color: white; opacity: 0.85; }
+.tier-seg.t3 { background: var(--t3); }
+.tier-seg.t10 { background: var(--t10); }
+.tier-seg.t20 { background: var(--t20); }
+.tier-seg.t25 { background: var(--t25); }
+.tier-seg.t30 { background: var(--t30); }
+.tier-seg.t35 { background: var(--t35); color: white; }
+.tier-seg.t45 { background: var(--t45); color: white; }
+
+.tier-marker {
+  position: absolute;
+  top: -8px; bottom: -8px;
+  width: 2px;
+  background: var(--accent);
+  z-index: 5;
+}
+.tier-marker::before {
+  content: '↓';
+  position: absolute;
+  top: -16px;
+  left: -8px;
+  color: var(--accent);
+  font-size: 1rem;
+  font-weight: bold;
+}
+.tier-marker::after {
+  content: attr(data-label);
+  position: absolute;
+  bottom: -22px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.7rem;
+  color: var(--accent);
+  white-space: nowrap;
+  font-weight: 600;
+}
+
+.tier-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.85rem;
+  margin-top: 1.5rem;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.7rem;
+  color: var(--ink-soft);
+}
+.legend-item { display: flex; align-items: center; gap: 0.35rem; }
+.legend-swatch {
+  width: 10px; height: 10px;
+  border: 1px solid var(--line);
+  border-radius: 1px;
+}
+
+.buffer-row {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 0.5rem;
+  margin-top: 1rem;
+}
+@media (max-width: 600px) { .buffer-row { grid-template-columns: repeat(2, 1fr); } }
+.buffer-cell {
+  background: var(--bg);
+  padding: 0.75rem;
+  border-left: 2px solid var(--line);
+}
+.buffer-cell.active { border-left-color: var(--accent); background: var(--accent-soft); }
+.buffer-cell .label {
+  font-size: 0.7rem;
+  color: var(--ink-mute);
+  font-family: 'JetBrains Mono', monospace;
+  margin-bottom: 0.2rem;
+}
+.buffer-cell .val {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--ink);
+}
+
+.preset-bar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  margin-top: 0.5rem;
+}
+.preset-btn {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.75rem;
+  padding: 0.4rem 0.7rem;
+  border: 1px solid var(--line);
+  background: var(--bg);
+  color: var(--ink-soft);
+  cursor: pointer;
+  border-radius: 2px;
+  transition: all 0.15s;
+}
+.preset-btn:hover { border-color: var(--accent); color: var(--accent); }
+.preset-btn.active { border-color: var(--accent); background: var(--accent); color: white; }
+
+.compare-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.85rem;
+}
+.compare-table th {
+  text-align: left;
+  padding: 0.6rem 0.5rem;
+  font-weight: 500;
+  color: var(--ink-mute);
+  border-bottom: 1px solid var(--line);
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+.compare-table td {
+  padding: 0.7rem 0.5rem;
+  border-bottom: 1px solid var(--line-soft);
+  font-family: 'JetBrains Mono', monospace;
+}
+.compare-table tr.active td {
+  background: var(--accent-soft);
+  font-weight: 600;
+}
+.compare-table tr:hover td { background: var(--line-soft); cursor: pointer; }
+.compare-table tr.active:hover td { background: var(--accent-soft); }
+.tag {
+  display: inline-block;
+  padding: 0.1rem 0.4rem;
+  font-size: 0.7rem;
+  border-radius: 2px;
+  font-weight: 500;
+}
+.tag-25 { background: var(--t25); }
+.tag-30 { background: var(--t30); }
+.tag-35 { background: var(--t35); color: white; }
+.tag-45 { background: var(--t45); color: white; }
+
+.note {
+  font-size: 0.78rem;
+  color: var(--ink-soft);
+  font-style: italic;
+  padding: 0.85rem 1rem;
+  background: var(--accent-soft);
+  border-left: 2px solid var(--accent);
+  border-radius: 2px;
+  margin-top: 1rem;
+}
+.note strong { font-style: normal; color: var(--accent); }
+
+.ref {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.65rem;
+  color: var(--ink-mute);
+  margin-top: 1rem;
+  line-height: 1.5;
+  opacity: 0.55;
+}
+.ref:hover { opacity: 0.95; }
+.ref a { color: inherit; text-decoration: none; }
+.ref a:hover { color: var(--accent); text-decoration: underline; }
+
+footer {
+  margin-top: 3rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid var(--line);
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.7rem;
+  color: var(--ink-mute);
+  text-align: center;
+  line-height: 1.7;
+}
+</style>
+</head>
+<body>
+<div class="container">
+  <header>
+    <div class="eyebrow">Equity Buyback Tax Planner · 2026</div>
+    <h1>期权回购税务规划工具</h1>
+    <p class="subtitle">按"工资薪金所得"并入综合所得计税。调整左侧参数，实时看到税档位置、buffer、税后到手金额。所有数据本地计算，不上传。</p>
+  </header>
+
+  <div class="grid">
+    <!-- 输入面板 -->
+    <div class="panel">
+      <div class="panel-title">参数设置</div>
+
+      <div class="input-group">
+        <label>兑现股数</label>
+        <input type="number" id="shares" value="0" min="0" step="100">
+        <div class="preset-bar">
+          <button class="preset-btn" data-shares="2000">2,000</button>
+          <button class="preset-btn" data-shares="4000">4,000</button>
+          <button class="preset-btn" data-shares="6000">6,000</button>
+          <button class="preset-btn" id="preset45" data-shares="0" title="再多 1 股即跨进 45% 档">45% 档临界</button>
+        </div>
+      </div>
+
+      <div class="divider"></div>
+
+      <div class="input-group-row">
+        <div class="input-group">
+          <label>回购价 (USD/股)</label>
+          <input type="number" id="buybackPrice" value="21" step="0.01">
+        </div>
+        <div class="input-group">
+          <label>行权价 (USD/股)</label>
+          <input type="number" id="strikePrice" value="0" step="0.01">
+        </div>
+      </div>
+
+      <div class="input-group">
+        <label>美元兑人民币汇率</label>
+        <input type="number" id="fxRate" value="6.9194" step="0.0001">
+      </div>
+
+      <div class="divider"></div>
+
+      <div class="input-group">
+        <label>2026 年税前年薪 (¥)</label>
+        <input type="number" id="annualSalary" value="0" step="1000">
+        <div class="hint">月薪 × 12，不含年终奖</div>
+      </div>
+
+      <div class="input-group">
+        <label>专项扣除 / 五险一金 年度合计 (¥)</label>
+        <input type="number" id="socialIns" value="0" step="100">
+        <div class="hint">公积金+养老+医保+失业 个人部分</div>
+      </div>
+
+      <div class="input-group">
+        <label>专项附加扣除 (¥)</label>
+        <input type="number" id="extraDed" value="0" step="1000">
+        <div class="hint">房贷、子女、赡养老人等</div>
+      </div>
+
+      <div class="input-group">
+        <label>其他扣除 (¥)</label>
+        <input type="number" id="otherDed" value="0" step="1000">
+        <div class="hint">企业年金、商业健康险等</div>
+      </div>
+
+      <div class="divider"></div>
+
+      <div class="input-group">
+        <label>年终奖 (¥)</label>
+        <input type="number" id="bonus" value="0" step="1000">
+        <div class="hint">全年一次性奖金，税前</div>
+      </div>
+
+      <div class="input-group">
+        <label>计税方式</label>
+        <div class="radio-row">
+          <label class="radio-item"><input type="radio" name="bonusMode" value="separate" checked> 单独计税</label>
+          <label class="radio-item"><input type="radio" name="bonusMode" value="merged"> 并入综合所得</label>
+        </div>
+      </div>
+    </div>
+
+    <!-- 结果面板 -->
+    <div class="results">
+      <!-- 摘要数字 -->
+      <div class="summary">
+        <div class="summary-cell">
+          <div class="summary-label">原价值</div>
+          <div class="summary-value" id="grossValue">¥0</div>
+          <div class="summary-sub" id="grossPerShare">¥0/股</div>
+        </div>
+        <div class="summary-cell">
+          <div class="summary-label">这次到手</div>
+          <div class="summary-value" id="netAfterTax">¥0</div>
+          <div class="summary-sub" id="netPerShare">¥0/股</div>
+        </div>
+        <div class="summary-cell">
+          <div class="summary-label">缴税</div>
+          <div class="summary-value" id="taxAmount">¥0</div>
+          <div class="summary-sub" id="avgTaxRate">平均 0%</div>
+        </div>
+        <div class="summary-cell">
+          <div class="summary-label">最高边际税率</div>
+          <div class="summary-value" id="marginalRate">0%</div>
+          <div class="summary-sub" id="taxBracket">未触档</div>
+        </div>
+        <div class="summary-cell">
+          <div class="summary-label">退还本金</div>
+          <div class="summary-value" id="refundedPrincipal">¥0</div>
+          <div class="summary-sub">不计税</div>
+        </div>
+      </div>
+
+      <!-- 税档可视化 -->
+      <div class="tier-bar-wrap">
+        <div class="panel-title">税档占用图</div>
+        <div class="tier-bar" id="tierBar"></div>
+        <div class="tier-legend">
+          <div class="legend-item"><div class="legend-swatch" style="background: var(--ink);"></div>工资</div>
+          <div class="legend-item"><div class="legend-swatch" style="background: var(--t3);"></div>3%</div>
+          <div class="legend-item"><div class="legend-swatch" style="background: var(--t10);"></div>10%</div>
+          <div class="legend-item"><div class="legend-swatch" style="background: var(--t20);"></div>20%</div>
+          <div class="legend-item"><div class="legend-swatch" style="background: var(--t25);"></div>25%</div>
+          <div class="legend-item"><div class="legend-swatch" style="background: var(--t30);"></div>30%</div>
+          <div class="legend-item"><div class="legend-swatch" style="background: var(--t35);"></div>35%</div>
+          <div class="legend-item"><div class="legend-swatch" style="background: var(--t45);"></div>45%</div>
+        </div>
+
+        <div class="buffer-row" id="bufferRow"></div>
+
+        <div class="note" id="advice"></div>
+      </div>
+
+      <!-- 年终奖面板 -->
+      <div class="panel" id="bonusPanel" style="display:none;">
+        <div class="panel-title">年终奖<span id="bonusModeLabel" class="panel-title-meta"></span></div>
+        <div class="summary" style="grid-template-columns: repeat(4, 1fr);">
+          <div class="summary-cell">
+            <div class="summary-label">税前金额</div>
+            <div class="summary-value" id="bonusGross">¥0</div>
+          </div>
+          <div class="summary-cell">
+            <div class="summary-label">缴税</div>
+            <div class="summary-value" id="bonusTaxAmt">¥0</div>
+            <div class="summary-sub" id="bonusRate">—</div>
+          </div>
+          <div class="summary-cell">
+            <div class="summary-label">税后到手</div>
+            <div class="summary-value" id="bonusNet">¥0</div>
+          </div>
+          <div class="summary-cell">
+            <div class="summary-label">月度等价</div>
+            <div class="summary-value" id="bonusMonthly">¥0</div>
+            <div class="summary-sub" id="bonusBracket">—</div>
+          </div>
+        </div>
+        <div class="note" id="bonusAdvice" style="display:none;"></div>
+        <div class="ref">
+          依据：<a href="https://fgk.chinatax.gov.cn/zcfgk/c102416/c5211524/content.html" target="_blank" rel="noopener">财政部 税务总局公告 2023 年第 30 号</a>《关于延续实施全年一次性奖金个人所得税政策的公告》——单独计税方式延续至 2027 年 12 月 31 日。计算方法见 国税发〔2005〕9 号。
+        </div>
+      </div>
+
+      <!-- 年度纳税 -->
+      <div class="panel">
+        <div class="panel-title">年度纳税</div>
+        <div class="summary" style="grid-template-columns: repeat(2, 1fr);">
+          <div class="summary-cell">
+            <div class="summary-label">应税所得（综合）</div>
+            <div class="summary-value" id="annualTaxable">¥0</div>
+            <div class="summary-sub" id="annualTaxableSub">工资 ¥0 + 回购 ¥0</div>
+          </div>
+          <div class="summary-cell">
+            <div class="summary-label">应纳税额（全年）</div>
+            <div class="summary-value" id="annualTaxDue">¥0</div>
+            <div class="summary-sub" id="annualTaxDueSub">综合 ¥0</div>
+          </div>
+        </div>
+        <div class="ref">
+          依据：<a href="https://fgk.chinatax.gov.cn/zcfgk/c100009/c5193028/content.html" target="_blank" rel="noopener">《中华人民共和国个人所得税法》</a>（2018 年第七次修正）综合所得适用 7 级超额累进税率（3%–45%），自 2019-01-01 起施行。
+        </div>
+      </div>
+
+      <!-- 方案对比表 -->
+      <div class="panel">
+        <div class="panel-title">方案对比</div>
+        <table class="compare-table">
+          <thead>
+            <tr>
+              <th>股数</th>
+              <th>边际档</th>
+              <th>税前差价</th>
+              <th>税后到手</th>
+              <th>每股效率</th>
+              <th>距 45% buffer</th>
+            </tr>
+          </thead>
+          <tbody id="compareBody"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <footer>
+    本工具基于 2026 中国大陆居民个人综合所得税法。年终奖建议选择"单独计税"以避免占用低税档。<br>
+    境外上市股票转让差价当前免征个税（财税〔2009〕167号）。本工具不构成税务咨询建议。
+  </footer>
+</div>
+
+<script>
+// 综合所得税率表（年）
+const TAX_TABLE = [
+  { upper: 36000,   rate: 0.03, deduct: 0 },
+  { upper: 144000,  rate: 0.10, deduct: 2520 },
+  { upper: 300000,  rate: 0.20, deduct: 16920 },
+  { upper: 420000,  rate: 0.25, deduct: 31920 },
+  { upper: 660000,  rate: 0.30, deduct: 52920 },
+  { upper: 960000,  rate: 0.35, deduct: 85920 },
+  { upper: Infinity, rate: 0.45, deduct: 181920 }
+];
+
+// 年终奖单独计税：年金额套月度速算扣除数
+const BONUS_TAX_TABLE = [
+  { upper: 36000,   rate: 0.03, deduct: 0 },
+  { upper: 144000,  rate: 0.10, deduct: 210 },
+  { upper: 300000,  rate: 0.20, deduct: 1410 },
+  { upper: 420000,  rate: 0.25, deduct: 2660 },
+  { upper: 660000,  rate: 0.30, deduct: 4410 },
+  { upper: 960000,  rate: 0.35, deduct: 7160 },
+  { upper: Infinity, rate: 0.45, deduct: 15160 }
+];
+
+// 年终奖临界点陷阱区间 (开区间下界, 闭区间上界]
+const BONUS_TRAPS = [
+  { from: 36000,  to: 38566.67,   safe: 36000 },
+  { from: 144000, to: 160500,     safe: 144000 },
+  { from: 300000, to: 318750,     safe: 300000 },
+  { from: 420000, to: 447500,     safe: 420000 },
+  { from: 660000, to: 706538.46,  safe: 660000 },
+  { from: 960000, to: 1120000,    safe: 960000 }
+];
+
+function calcBonusTax(bonus) {
+  if (bonus <= 0) return { tax: 0, rate: 0, deduct: 0, monthly: 0, bracket: '—' };
+  const monthly = bonus / 12;
+  for (const t of BONUS_TAX_TABLE) {
+    if (monthly * 12 <= t.upper) {
+      return {
+        tax: bonus * t.rate - t.deduct,
+        rate: t.rate, deduct: t.deduct,
+        monthly,
+        bracket: (t.rate * 100).toFixed(0) + '%'
+      };
+    }
+  }
+  return { tax: 0, rate: 0, deduct: 0, monthly, bracket: '—' };
+}
+
+const TIER_BOUNDS = [0, 36000, 144000, 300000, 420000, 660000, 960000];
+const TIER_LABELS = ['3%', '10%', '20%', '25%', '30%', '35%', '45%'];
+const TIER_CLASSES = ['t3', 't10', 't20', 't25', 't30', 't35', 't45'];
+
+function calcTax(taxable) {
+  if (taxable <= 0) return 0;
+  for (const t of TAX_TABLE) {
+    if (taxable <= t.upper) return taxable * t.rate - t.deduct;
+  }
+  return 0;
+}
+
+function getMarginalRate(taxable) {
+  if (taxable <= 0) return 0;
+  for (let i = 0; i < TAX_TABLE.length; i++) {
+    if (taxable <= TAX_TABLE[i].upper) return TAX_TABLE[i].rate;
+  }
+  return 0.45;
+}
+
+function getTierName(taxable) {
+  if (taxable <= 0) return '0';
+  for (let i = 0; i < TAX_TABLE.length; i++) {
+    if (taxable <= TAX_TABLE[i].upper) return TIER_LABELS[i];
+  }
+  return '45%';
+}
+
+const fmt = n => '¥' + n.toLocaleString('zh-CN', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+const fmtFull = n => n.toLocaleString('zh-CN', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+
+function compute() {
+  const shares = +document.getElementById('shares').value || 0;
+  const buyback = +document.getElementById('buybackPrice').value || 0;
+  const strike = +document.getElementById('strikePrice').value || 0;
+  const fx = +document.getElementById('fxRate').value || 0;
+  const annualSalary = +document.getElementById('annualSalary').value || 0;
+  const socialIns = +document.getElementById('socialIns').value || 0;
+  const extraDed = +document.getElementById('extraDed').value || 0;
+  const otherDed = +document.getElementById('otherDed').value || 0;
+  const bonus = +document.getElementById('bonus').value || 0;
+  const bonusMode = (document.querySelector('input[name="bonusMode"]:checked') || {}).value || 'separate';
+
+  const totalDed = 60000 + socialIns + extraDed + otherDed;
+  // 并入综合时，年终奖加入综合所得；单独计税时，不影响综合
+  const effectiveSalary = bonusMode === 'merged' ? annualSalary + bonus : annualSalary;
+  const salaryTaxable = Math.max(0, effectiveSalary - totalDed);
+  const bonusInfo = bonusMode === 'separate' ? calcBonusTax(bonus) : { tax: 0, rate: 0, monthly: bonus / 12, bracket: '—' };
+
+  const perShareDiff = (buyback - strike) * fx;
+  const grossDiff = shares * perShareDiff;
+  const refundedPrincipal = shares * strike * fx;
+  const grossValue = shares * buyback * fx;
+
+  const totalTaxable = salaryTaxable + grossDiff;
+
+  const totalTax = calcTax(totalTaxable);
+  const salaryOnlyTax = calcTax(salaryTaxable);
+  const buybackTax = totalTax - salaryOnlyTax;
+
+  const netDiff = grossDiff - buybackTax;
+  const netTotal = netDiff + refundedPrincipal;
+
+  const avgRate = grossDiff > 0 ? buybackTax / grossDiff : 0;
+  const marginal = getMarginalRate(totalTaxable);
+  const tierName = getTierName(totalTaxable);
+
+  // 距各档 buffer
+  const bufferTo30 = Math.max(0, 420000 - totalTaxable);
+  const bufferTo35 = Math.max(0, 660000 - totalTaxable);
+  const bufferTo45 = Math.max(0, 960000 - totalTaxable);
+
+  return {
+    shares, perShareDiff, grossDiff, refundedPrincipal, grossValue,
+    salaryTaxable, totalTaxable, totalTax, salaryOnlyTax,
+    buybackTax, netDiff, netTotal,
+    avgRate, marginal, tierName,
+    bufferTo30, bufferTo35, bufferTo45,
+    perShareNet: shares > 0 ? netTotal / shares : 0,
+    perShareGross: shares > 0 ? grossValue / shares : 0,
+    bonus, bonusMode, bonusInfo
+  };
+}
+
+function render() {
+  const r = compute();
+
+  // 动态更新 45% 档临界 preset
+  const preset45 = document.getElementById('preset45');
+  const headroom45 = 960000 - r.salaryTaxable;
+  const maxShares45 = r.perShareDiff > 0 ? Math.floor(headroom45 / r.perShareDiff) : 0;
+  if (maxShares45 > 0) {
+    preset45.dataset.shares = maxShares45;
+    preset45.textContent = `45% 档临界 ${maxShares45.toLocaleString()}`;
+    preset45.disabled = false;
+  } else {
+    preset45.dataset.shares = 0;
+    preset45.textContent = '45% 档临界 —';
+    preset45.disabled = true;
+  }
+
+  document.getElementById('grossValue').textContent = fmt(r.grossValue);
+  document.getElementById('grossPerShare').textContent = r.shares > 0 ? `¥${r.perShareGross.toFixed(2)}/股` : '—';
+  document.getElementById('netAfterTax').textContent = fmt(r.netTotal);
+  document.getElementById('netPerShare').textContent = r.shares > 0 ? `¥${r.perShareNet.toFixed(2)}/股` : '—';
+  document.getElementById('taxAmount').textContent = fmt(r.buybackTax);
+  document.getElementById('avgTaxRate').textContent = `平均 ${(r.avgRate * 100).toFixed(1)}%`;
+  document.getElementById('marginalRate').textContent = `${(r.marginal * 100).toFixed(0)}%`;
+  document.getElementById('taxBracket').textContent = r.totalTaxable > 0 ? `卡在 ${r.tierName} 档` : '—';
+  document.getElementById('refundedPrincipal').textContent = fmt(r.refundedPrincipal);
+  // 年度纳税 panel
+  document.getElementById('annualTaxable').textContent = fmt(r.totalTaxable);
+  document.getElementById('annualTaxableSub').textContent =
+    `工资 ${fmt(r.salaryTaxable)} + 回购 ${fmt(r.grossDiff)}`;
+  const grandTaxDue = r.totalTax + r.bonusInfo.tax;
+  document.getElementById('annualTaxDue').textContent = fmt(grandTaxDue);
+  document.getElementById('annualTaxDueSub').textContent = r.bonusInfo.tax > 0
+    ? `综合 ${fmt(r.totalTax)} + 年终奖 ${fmt(r.bonusInfo.tax)}`
+    : `综合 ${fmt(r.totalTax)}`;
+
+  renderBonusPanel(r);
+
+  // 税档条
+  renderTierBar(r);
+
+  // buffer
+  renderBuffer(r);
+
+  // 建议
+  renderAdvice(r);
+
+  // 对比表
+  renderCompareTable();
+
+  // preset 高亮
+  document.querySelectorAll('.preset-btn').forEach(b => {
+    b.classList.toggle('active', +b.dataset.shares === r.shares);
+  });
+}
+
+function renderTierBar(r) {
+  const bar = document.getElementById('tierBar');
+  bar.innerHTML = '';
+
+  // 总条宽度按 1,200,000 为基准
+  const SCALE = 1200000;
+  const total = Math.min(r.totalTaxable, SCALE * 1.05);
+
+  if (total === 0) {
+    bar.innerHTML = '<div style="flex:1;display:flex;align-items:center;justify-content:center;color:var(--ink-mute);font-size:0.85rem;">无应税收入</div>';
+    return;
+  }
+
+  let cursor = 0;
+  // 工资部分
+  if (r.salaryTaxable > 0) {
+    const seg = document.createElement('div');
+    seg.className = 'tier-seg salary';
+    seg.style.flexBasis = (r.salaryTaxable / SCALE * 100) + '%';
+    seg.textContent = r.salaryTaxable / SCALE > 0.06 ? '工资' : '';
+    seg.title = `工资部分: ${fmt(r.salaryTaxable)}`;
+    bar.appendChild(seg);
+    cursor = r.salaryTaxable;
+  }
+
+  // 回购部分按税档分段
+  let remaining = r.grossDiff;
+  for (let i = 0; i < TAX_TABLE.length && remaining > 0; i++) {
+    const tierTop = TAX_TABLE[i].upper;
+    if (cursor >= tierTop) continue;
+    const segSize = Math.min(remaining, tierTop - cursor);
+    if (segSize <= 0) continue;
+
+    const seg = document.createElement('div');
+    seg.className = 'tier-seg ' + TIER_CLASSES[i];
+    seg.style.flexBasis = (segSize / SCALE * 100) + '%';
+    if (segSize / SCALE > 0.04) seg.textContent = TIER_LABELS[i];
+    seg.title = `${TIER_LABELS[i]} 档: ${fmt(segSize)}`;
+    bar.appendChild(seg);
+
+    cursor += segSize;
+    remaining -= segSize;
+  }
+
+  // 剩余空间 (虚化背景)
+  if (cursor < SCALE) {
+    const seg = document.createElement('div');
+    seg.style.flexBasis = ((SCALE - cursor) / SCALE * 100) + '%';
+    seg.style.background = 'repeating-linear-gradient(45deg, transparent, transparent 4px, var(--line-soft) 4px, var(--line-soft) 5px)';
+    bar.appendChild(seg);
+  }
+
+  // 添加档位分界标记线
+  const markers = [
+    { pos: 36000, label: '3.6万' },
+    { pos: 144000, label: '14.4万' },
+    { pos: 300000, label: '30万' },
+    { pos: 420000, label: '42万' },
+    { pos: 660000, label: '66万' },
+    { pos: 960000, label: '96万' }
+  ];
+  markers.forEach(m => {
+    const marker = document.createElement('div');
+    marker.className = 'tier-marker';
+    marker.style.left = (m.pos / SCALE * 100) + '%';
+    marker.dataset.label = m.label;
+    marker.style.opacity = '0.25';
+    bar.appendChild(marker);
+  });
+
+  // 当前位置标记 (高亮)
+  if (r.totalTaxable > 0 && r.totalTaxable < SCALE) {
+    const cur = document.createElement('div');
+    cur.className = 'tier-marker';
+    cur.style.left = (r.totalTaxable / SCALE * 100) + '%';
+    cur.dataset.label = '当前 ' + fmt(r.totalTaxable).replace('¥','¥');
+    cur.style.background = 'var(--accent)';
+    cur.style.zIndex = 10;
+    bar.appendChild(cur);
+  }
+}
+
+function renderBonusPanel(r) {
+  const panel = document.getElementById('bonusPanel');
+  if (r.bonus <= 0) { panel.style.display = 'none'; return; }
+  panel.style.display = '';
+
+  document.getElementById('bonusModeLabel').textContent =
+    r.bonusMode === 'separate' ? '· 单独计税' : '· 并入综合所得';
+  document.getElementById('bonusGross').textContent = fmt(r.bonus);
+
+  if (r.bonusMode === 'separate') {
+    document.getElementById('bonusTaxAmt').textContent = fmt(r.bonusInfo.tax);
+    document.getElementById('bonusRate').textContent = `税率 ${r.bonusInfo.bracket}`;
+    document.getElementById('bonusNet').textContent = fmt(r.bonus - r.bonusInfo.tax);
+    document.getElementById('bonusMonthly').textContent = fmt(r.bonusInfo.monthly);
+    document.getElementById('bonusBracket').textContent = `落 ${r.bonusInfo.bracket} 月度档`;
+  } else {
+    document.getElementById('bonusTaxAmt').textContent = '已并入';
+    document.getElementById('bonusRate').textContent = '不单独计';
+    document.getElementById('bonusNet').textContent = '—';
+    document.getElementById('bonusMonthly').textContent = fmt(r.bonus / 12);
+    document.getElementById('bonusBracket').textContent = '加到工资合并算';
+  }
+
+  // 临界点陷阱检测（仅单独计税）
+  const adv = document.getElementById('bonusAdvice');
+  if (r.bonusMode === 'separate' && r.bonus > 0) {
+    const trap = BONUS_TRAPS.find(t => r.bonus > t.from && r.bonus <= t.to);
+    if (trap) {
+      const safeNet = trap.safe - calcBonusTax(trap.safe).tax;
+      const curNet = r.bonus - r.bonusInfo.tax;
+      const lossAmt = safeNet - curNet;
+      adv.innerHTML = `<strong>⚠ 临界点陷阱。</strong>当前金额落在 (${fmt(trap.from)}, ${fmt(trap.to)}] 死区——发到 ${fmt(trap.safe)} 反而比 ${fmt(r.bonus)} 多到手 ${fmt(lossAmt)}。`;
+      adv.style.display = '';
+    } else {
+      adv.style.display = 'none';
+    }
+  } else {
+    adv.style.display = 'none';
+  }
+}
+
+function renderBuffer(r) {
+  const cells = [
+    { label: '当前档位', val: r.totalTaxable > 0 ? `${r.tierName}` : '—', active: false },
+    { label: '距 30% 档', val: r.bufferTo30 > 0 ? fmt(r.bufferTo30) : '已进入', active: r.marginal === 0.25 },
+    { label: '距 35% 档', val: r.bufferTo35 > 0 ? fmt(r.bufferTo35) : '已进入', active: r.marginal === 0.30 },
+    { label: '距 45% 档', val: r.bufferTo45 > 0 ? fmt(r.bufferTo45) : '已进入', active: r.marginal === 0.35 },
+  ];
+  document.getElementById('bufferRow').innerHTML = cells.map(c =>
+    `<div class="buffer-cell ${c.active ? 'active' : ''}">
+      <div class="label">${c.label}</div>
+      <div class="val">${c.val}</div>
+    </div>`).join('');
+}
+
+function renderAdvice(r) {
+  let msg = '';
+  if (r.marginal <= 0.20) {
+    msg = `<strong>极保守。</strong>边际税率 ${(r.marginal*100).toFixed(0)}%，35% 档 buffer 还有 ${fmt(r.bufferTo35)}，应对意外收入空间充足。`;
+  } else if (r.marginal === 0.25) {
+    msg = `<strong>保守。</strong>边际税率 25%，距 30% 档还有 ${fmt(r.bufferTo30)} 缓冲，可吸收一定额外收入。`;
+  } else if (r.marginal === 0.30) {
+    msg = `<strong>平衡。</strong>边际税率 30%，距 35% 档剩 ${fmt(r.bufferTo35)} buffer。轻度涨薪/年终奖单独计税不会跨档。`;
+  } else if (r.marginal === 0.35) {
+    msg = `<strong>较激进。</strong>边际税率 35%，距 45% 档仅剩 ${fmt(r.bufferTo45)}。任何超过此额的额外收入会按 45% 计税。`;
+  } else {
+    msg = `<strong>已进入 45% 档。</strong>每多兑 1 股的边际税后收益仅约 ¥${(r.perShareDiff * 0.55).toFixed(2)}。考虑减少兑现股数提高税后效率。`;
+  }
+  document.getElementById('advice').innerHTML = msg;
+}
+
+function renderCompareTable() {
+  const r = compute();
+  const basePresets = [1000, 2000, 4000, 6000, 10000, 50000, 100000, 200000, 500000];
+  const threshold45 = r.perShareDiff > 0
+    ? Math.floor((960000 - r.salaryTaxable) / r.perShareDiff)
+    : 0;
+  const presets = [...new Set([...basePresets, threshold45].filter(s => s > 0))].sort((a, b) => a - b);
+  const rows = presets.map(s => {
+    const tmp = computeFor(s);
+    return { shares: s, isThreshold: s === threshold45, ...tmp };
+  });
+
+  const html = rows.map(row => {
+    const isActive = row.shares === r.shares;
+    let tagClass = 'tag-25';
+    if (row.marginal === 0.30) tagClass = 'tag-30';
+    else if (row.marginal === 0.35) tagClass = 'tag-35';
+    else if (row.marginal === 0.45) tagClass = 'tag-45';
+
+    return `<tr class="${isActive ? 'active' : ''}" data-shares="${row.shares}">
+      <td>${row.shares.toLocaleString()}${row.isThreshold ? ' <span style="font-size:0.65rem;color:var(--ink-mute);">45%临界</span>' : ''}</td>
+      <td><span class="tag ${tagClass}">${(row.marginal*100).toFixed(0)}%</span></td>
+      <td>${fmt(row.grossDiff)}</td>
+      <td><strong>${fmt(row.netTotal)}</strong></td>
+      <td>¥${row.perShareNet.toFixed(2)}</td>
+      <td>${row.bufferTo45 > 0 ? fmt(row.bufferTo45) : '已进入'}</td>
+    </tr>`;
+  }).join('');
+
+  document.getElementById('compareBody').innerHTML = html;
+
+  document.querySelectorAll('.compare-table tr[data-shares]').forEach(tr => {
+    tr.addEventListener('click', () => {
+      document.getElementById('shares').value = tr.dataset.shares;
+      render();
+    });
+  });
+}
+
+function computeFor(shares) {
+  const buyback = +document.getElementById('buybackPrice').value || 0;
+  const strike = +document.getElementById('strikePrice').value || 0;
+  const fx = +document.getElementById('fxRate').value || 0;
+  const annualSalary = +document.getElementById('annualSalary').value || 0;
+  const socialIns = +document.getElementById('socialIns').value || 0;
+  const extraDed = +document.getElementById('extraDed').value || 0;
+  const otherDed = +document.getElementById('otherDed').value || 0;
+
+  const bonus = +document.getElementById('bonus').value || 0;
+  const bonusMode = (document.querySelector('input[name="bonusMode"]:checked') || {}).value || 'separate';
+
+  const totalDed = 60000 + socialIns + extraDed + otherDed;
+  const effectiveSalary = bonusMode === 'merged' ? annualSalary + bonus : annualSalary;
+  const salaryTaxable = Math.max(0, effectiveSalary - totalDed);
+
+  const perShareDiff = (buyback - strike) * fx;
+  const grossDiff = shares * perShareDiff;
+  const refundedPrincipal = shares * strike * fx;
+  const totalTaxable = salaryTaxable + grossDiff;
+  const buybackTax = calcTax(totalTaxable) - calcTax(salaryTaxable);
+  const netTotal = grossDiff - buybackTax + refundedPrincipal;
+  const marginal = getMarginalRate(totalTaxable);
+  const bufferTo45 = Math.max(0, 960000 - totalTaxable);
+
+  return { grossDiff, netTotal, marginal, bufferTo45,
+    perShareNet: shares > 0 ? netTotal / shares : 0 };
+}
+
+// localStorage 持久化
+const STORAGE_KEY = 'buybackCalc.v1';
+const INPUT_IDS = ['shares', 'buybackPrice', 'strikePrice', 'fxRate', 'annualSalary', 'socialIns', 'extraDed', 'otherDed', 'bonus'];
+
+function saveInputs() {
+  const data = {};
+  INPUT_IDS.forEach(id => { data[id] = document.getElementById(id).value; });
+  data.bonusMode = (document.querySelector('input[name="bonusMode"]:checked') || {}).value || 'separate';
+  try { localStorage.setItem(STORAGE_KEY, JSON.stringify(data)); } catch (e) {}
+}
+
+function restoreInputs() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (!raw) return;
+    const data = JSON.parse(raw);
+    INPUT_IDS.forEach(id => {
+      if (data[id] !== undefined && data[id] !== '') document.getElementById(id).value = data[id];
+    });
+    if (data.bonusMode) {
+      const r = document.querySelector(`input[name="bonusMode"][value="${data.bonusMode}"]`);
+      if (r) r.checked = true;
+    }
+  } catch (e) {}
+}
+
+restoreInputs();
+
+// 绑定事件
+document.querySelectorAll('input').forEach(inp => {
+  const evt = inp.type === 'radio' ? 'change' : 'input';
+  inp.addEventListener(evt, () => { saveInputs(); render(); });
+});
+document.querySelectorAll('.preset-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.getElementById('shares').value = btn.dataset.shares;
+    saveInputs();
+    render();
+  });
+});
+
+render();
+</script>
+</body>
+</html>
