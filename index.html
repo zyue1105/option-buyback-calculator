@@ -173,8 +173,13 @@ h1 {
   border-radius: 4px;
   overflow: hidden;
 }
+.summary.cols-4 { grid-template-columns: repeat(4, 1fr); }
+.summary.cols-2 { grid-template-columns: repeat(2, 1fr); }
 @media (max-width: 900px) { .summary { grid-template-columns: repeat(3, 1fr); } }
-@media (max-width: 600px) { .summary { grid-template-columns: repeat(2, 1fr); } }
+@media (max-width: 600px) {
+  .summary { grid-template-columns: repeat(2, 1fr); }
+  .summary.cols-4 { grid-template-columns: repeat(2, 1fr); }
+}
 .summary-cell {
   background: var(--bg-card);
   padding: 1rem 0.85rem;
@@ -400,6 +405,30 @@ footer {
   text-align: center;
   line-height: 1.7;
 }
+
+.table-scroll { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+.table-scroll .compare-table { min-width: 540px; }
+
+@media (max-width: 600px) {
+  body { padding: 1.25rem 0.85rem 3rem; }
+  .panel { padding: 1.1rem; }
+  header { margin-bottom: 1.25rem; padding-bottom: 1rem; }
+  h1 { font-size: 1.6rem; }
+  .subtitle { font-size: 0.85rem; }
+  .grid { gap: 1.25rem; }
+  .input-group-row { grid-template-columns: 1fr; }
+  .summary-value { font-size: 1.15rem; }
+  .summary-cell { padding: 0.75rem 0.7rem; }
+  .tier-bar { height: 32px; }
+  .tier-marker::after { font-size: 0.6rem; }
+  .tier-bar-wrap { padding: 1rem; }
+  .preset-bar { gap: 0.3rem; }
+  .preset-btn { font-size: 0.7rem; padding: 0.35rem 0.6rem; }
+  .compare-table { font-size: 0.75rem; }
+  .compare-table th, .compare-table td { padding: 0.5rem 0.4rem; }
+  .note { font-size: 0.75rem; padding: 0.7rem 0.8rem; }
+  .ref { font-size: 0.6rem; }
+}
 </style>
 </head>
 <body>
@@ -541,7 +570,7 @@ footer {
       <!-- 年终奖面板 -->
       <div class="panel" id="bonusPanel" style="display:none;">
         <div class="panel-title">年终奖<span id="bonusModeLabel" class="panel-title-meta"></span></div>
-        <div class="summary" style="grid-template-columns: repeat(4, 1fr);">
+        <div class="summary cols-4">
           <div class="summary-cell">
             <div class="summary-label">税前金额</div>
             <div class="summary-value" id="bonusGross">¥0</div>
@@ -570,7 +599,7 @@ footer {
       <!-- 年度纳税 -->
       <div class="panel">
         <div class="panel-title">年度纳税</div>
-        <div class="summary" style="grid-template-columns: repeat(2, 1fr);">
+        <div class="summary cols-2">
           <div class="summary-cell">
             <div class="summary-label">应税所得（综合）</div>
             <div class="summary-value" id="annualTaxable">¥0</div>
@@ -590,19 +619,21 @@ footer {
       <!-- 方案对比表 -->
       <div class="panel">
         <div class="panel-title">方案对比</div>
-        <table class="compare-table">
-          <thead>
-            <tr>
-              <th>股数</th>
-              <th>边际档</th>
-              <th>税前差价</th>
-              <th>税后到手</th>
-              <th>每股效率</th>
-              <th>距 45% buffer</th>
-            </tr>
-          </thead>
-          <tbody id="compareBody"></tbody>
-        </table>
+        <div class="table-scroll">
+          <table class="compare-table">
+            <thead>
+              <tr>
+                <th>股数</th>
+                <th>边际档</th>
+                <th>税前差价</th>
+                <th>税后到手</th>
+                <th>每股效率</th>
+                <th>距 45% buffer</th>
+              </tr>
+            </thead>
+            <tbody id="compareBody"></tbody>
+          </table>
+        </div>
       </div>
     </div>
   </div>
